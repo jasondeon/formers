@@ -9,6 +9,7 @@ class BaseTransformer(nn.Module):
     # Baseline Transformer (Decoder only)
     def __init__(self,
                  seq_len,
+                 num_tokens,
                  embed_dim,
                  nhead,
                  feedforward,
@@ -17,18 +18,19 @@ class BaseTransformer(nn.Module):
         super(BaseTransformer, self).__init__()
         
         self.seq_len     = seq_len
+        self.num_tokens  = num_tokens
         self.embed_dim   = embed_dim
         self.nhead       = nhead
         self.feedforward = feedforward
         self.layers      = layers
         self.dropout     = dropout
         
-        self.embed       = nn.Embedding(128+128+100+32, self.embed_dim)
+        self.embed       = nn.Embedding(self.num_tokens, self.embed_dim)
         self.pos_encoder = PositionalEncoding(self.embed_dim, self.dropout, max_len=self.seq_len)
         dec_layer        = BaseDecoderLayer(self.embed_dim, self.nhead, self.feedforward, self.dropout)
         dec_norm         = nn.LayerNorm(self.embed_dim)
         self.dec         = LayerStack(dec_layer, self.layers, norm=dec_norm)
-        self.fc          = nn.Linear(self.embed_dim, 128+128+100+32)
+        self.fc          = nn.Linear(self.embed_dim, self.num_tokens)
         
         self.init_weights()
 
@@ -49,6 +51,7 @@ class RelativeTransformer(nn.Module):
     # Relative Transformer (Decoder only)
     def __init__(self,
                  seq_len,
+                 num_tokens,
                  embed_dim,
                  nhead,
                  k,
@@ -58,6 +61,7 @@ class RelativeTransformer(nn.Module):
         super(RelativeTransformer, self).__init__()
         
         self.seq_len     = seq_len
+        self.num_tokens  = num_tokens
         self.embed_dim   = embed_dim
         self.nhead       = nhead
         self.k           = k
@@ -65,11 +69,11 @@ class RelativeTransformer(nn.Module):
         self.layers      = layers
         self.dropout     = dropout
         
-        self.embed       = nn.Embedding(128+128+100+32, self.embed_dim)
+        self.embed       = nn.Embedding(self.num_tokens, self.embed_dim)
         dec_layer        = RelativeDecoderLayer(self.embed_dim, self.nhead, self.k, self.feedforward, self.dropout)
         dec_norm         = nn.LayerNorm(self.embed_dim)
         self.dec         = LayerStack(dec_layer, self.layers, norm=dec_norm)
-        self.fc          = nn.Linear(self.embed_dim, 128+128+100+32)
+        self.fc          = nn.Linear(self.embed_dim, self.num_tokens)
         
         self.init_weights()
 
